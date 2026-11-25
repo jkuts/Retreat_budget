@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retreat Food & Shopping Budget</title>
+<meta name="theme-color" content="#1f3a2e">
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#fff; --ink:#1d2421; --muted:#6b736f; --line:#e4e0d6;
+    --accent:#1f3a2e; --good:#2f7a4f; --bad:#c0392b; --warn:#b7791f;
+    --Meat:#f6d5d1; --Produce:#d6efd9; --Staples:#f8edc4; --Snacks:#fbe0c6; --Drinks:#d5e6f7; --Supplies:#e5e5e5; --Other:#ece3f5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141816; --card:#1d2320; --ink:#e9ece9; --muted:#9aa39e; --line:#2d3531; --accent:#9fd3b4;
+      --Meat:#4a2a27; --Produce:#24402b; --Staples:#47401f; --Snacks:#4a3420; --Drinks:#203547; --Supplies:#333; --Other:#3a2f47; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;padding-bottom:90px}
+  header{background:var(--accent);color:#fff;padding:18px 16px 70px}
+  @media (prefers-color-scheme: dark){ header{background:#1f3a2e} }
+  h1{margin:0;font-size:20px;letter-spacing:-.2px}
+  .sub{opacity:.8;font-size:13px;margin-top:2px}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;opacity:.85;margin-top:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#7ee2a3}
+  .dot.off{background:#f39c8f}
+  main{max-width:760px;margin:-56px auto 0;padding:0 12px}
+  .summary{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat .l{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+  .budget-input{font:inherit;font-size:19px;font-weight:700;width:100%;border:none;border-bottom:1px dashed var(--line);background:transparent;color:var(--ink);padding:0}
+  .bar{height:10px;border-radius:6px;background:var(--line);margin:14px 0 6px;overflow:hidden;display:flex}
+  .bar span{height:100%}
+  .status{font-weight:600;font-size:14px}
+  .status.ok{color:var(--good)} .status.over{color:var(--bad)}
+  .cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{font-size:12px;padding:4px 9px;border-radius:999px;color:var(--ink);cursor:pointer;border:2px solid transparent}
+  .chip.active{border-color:var(--ink)}
+  .toolbar{display:flex;gap:8px;align-items:center;margin:16px 2px 8px}
+  .toolbar h2{font-size:16px;margin:0;flex:1}
+  .toggle{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .item{background:var(--card);border-radius:14px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--line);display:grid;grid-template-columns:28px 1fr auto;gap:4px 10px;align-items:start}
+  .item.bought{opacity:.6}
+  .item.bought .name{text-decoration:line-through}
+  .item input[type=checkbox]{width:22px;height:22px;margin:6px 0 0;accent-color:var(--good)}
+  .name{font:inherit;font-weight:600;border:none;background:transparent;color:var(--ink);width:100%;padding:4px 0}
+  .total{font-weight:700;font-variant-numeric:tabular-nums;padding-top:4px;white-space:nowrap}
+  .row2{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .row2 select,.row2 input{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:var(--bg);color:var(--ink)}
+  .qty{width:56px}.price{width:100px}.who{width:110px}
+  .notes{grid-column:2 / 4;font:inherit;font-size:13px;color:var(--muted);border:none;background:transparent;width:100%;padding:2px 0}
+  .del{border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;margin-left:auto}
+  .x{font-size:12px;color:var(--muted)}
+  .add{position:fixed;left:0;right:0;bottom:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%)}
+  .add button{display:block;max-width:760px;margin:0 auto;width:100%;font:inherit;font-weight:700;font-size:16px;padding:14px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+  @media (prefers-color-scheme: dark){ .add button{color:#10231a} }
+  .err{background:#fde8e6;color:#8a2318;padding:10px 12px;border-radius:10px;margin:10px 0;font-size:13px;display:none}
+  .empty{text-align:center;color:var(--muted);padding:30px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛒 Retreat Food & Shopping Budget</h1>
+  <div class="sub">One shared list — everyone with this link can edit.</div>
+  <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">Live</span></div>
+</header>
+<main>
+  <section class="summary">
+    <div class="stats">
+      <div class="stat"><div class="l">Budget (₩)</div><input class="budget-input" id="budget" inputmode="numeric"></div>
+      <div class="stat"><div class="l">Planned</div><div class="v" id="planned">–</div></div>
+      <div class="stat"><div class="l">Bought so far</div><div class="v" id="spent">–</div></div>
+      <div class="stat"><div class="l">Left to plan</div><div class="v" id="left">–</div></div>
+    </div>
+    <div class="bar" id="bar"></div>
+    <div class="status" id="status"></div>
+    <div class="cats" id="cats"></div>
+  </section>
+  <div class="err" id="err"></div>
+  <div class="toolbar">
+    <h2 id="listTitle">Shopping list</h2>
+    <label class="toggle"><input type="checkbox" id="hideBought"> Hide bought</label>
+  </div>
+  <div id="list"></div>
+</main>
+<div class="add"><button id="addBtn">+ Add item</button></div>
+
+<script>
+const CATS = ["Meat","Produce","Staples","Snacks","Drinks","Supplies","Other"];
+const won = n => "₩" + Math.round(n||0).toLocaleString("en-US");
+let state = { budget: 330000, items: [] };
+let filter = null;
+const pending = new Map();   // id -> timer (local edits not yet saved)
+const dirty = new Set();     // ids with unsaved local changes
+const $ = id => document.getElementById(id);
+
+async function api(method, body){
+  const r = await fetch("/api/items", { method, headers:{"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined });
+  const j = await r.json().catch(()=>({error:"Bad response"}));
+  if(!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function setLive(ok, msg){
+  $("dot").classList.toggle("off", !ok);
+  $("liveTxt").textContent = ok ? "Live · syncing every few seconds" : "Offline — retrying…";
+  $("err").style.display = msg ? "block" : "none";
+  $("err").textContent = msg || "";
+}
+
+function merge(remote){
+  // Keep local unsaved edits; take everything else from the server.
+  const local = new Map(state.items.map(i=>[i.id,i]));
+  const items = remote.items.map(r => dirty.has(r.id) && local.get(r.id) ? local.get(r.id) : r);
+  for (const id of dirty) if (!remote.items.find(r=>r.id===id) && local.get(id)) items.push(local.get(id));
+  state = { budget: document.activeElement===$("budget") ? state.budget : remote.budget, items };
+}
+
+async function refresh(){
+  try { merge(await api("GET")); setLive(true); render(); }
+  catch(e){ setLive(false, e.message.includes("Database") ? e.message : ""); }
+}
+
+function save(item, delay=500){
+  dirty.add(item.id);
+  clearTimeout(pending.get(item.id));
+  pending.set(item.id, setTimeout(async ()=>{
+    try { await api("POST",{op:"upsert",item}); dirty.delete(item.id); setLive(true); }
+    catch(e){ setLive(false); }
+  }, delay));
+}
+
+function summary(){
+  const planned = state.items.reduce((s,i)=>s+i.qty*i.price,0);
+  const spent = state.items.filter(i=>i.bought).reduce((s,i)=>s+i.qty*i.price,0);
+  const left = state.budget - planned;
+  if (document.activeElement !== $("budget")) $("budget").value = Math.round(state.budget).toLocaleString("en-US");
+  $("planned").textContent = won(planned);
+  $("spent").textContent = won(spent);
+  $("left").textContent = (left<0?"−":"") + won(Math.abs(left));
+  $("left").style.color = left<0 ? "var(--bad)" : "var(--good)";
+  const st = $("status");
+  st.className = "status " + (left<0?"over":"ok");
+  st.textContent = left<0 ? `⚠️ Over budget by ${won(-left)} — trim something!` : `✅ On track — ${won(left)} still free to plan`;
+  // bar by category
+  const by = {}; state.items.forEach(i=>{ const c=CATS.includes(i.category)?i.category:"Other"; by[c]=(by[c]||0)+i.qty*i.price; });
+  const scale = Math.max(state.budget, planned) || 1;
+  $("bar").innerHTML = CATS.filter(c=>by[c]).map(c=>`<span title="${c}" style="width:${by[c]/scale*100}%;background:var(--${c})"></span>`).join("");
+  $("cats").innerHTML = CATS.filter(c=>by[c]).map(c=>
+    `<span class="chip ${filter===c?"active":""}" data-cat="${c}" style="background:var(--${c})">${c} · ${won(by[c])} · ${Math.round(by[c]/(state.budget||1)*100)}%</span>`).join("");
+}
+
+function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  summary();
+  const list = $("list");
+  const focused = document.activeElement;
+  const focusKey = focused && focused.dataset && focused.dataset.f ? focused.closest(".item")?.dataset.id + ":" + focused.dataset.f : null;
+  const selStart = focused && "selectionStart" in focused ? focused.selectionStart : null;
+  let items = state.items;
+  if (filter) items = items.filter(i => (CATS.includes(i.category)?i.category:"Other") === filter);
+  if ($("hideBought").checked) items = items.filter(i=>!i.bought);
+  $("listTitle").textContent = filter ? `Shopping list · ${filter}` : "Shopping list";
+  list.innerHTML = items.length ? items.map(i=>`
+    <div class="item ${i.bought?"bought":""}" data-id="${esc(i.id)}">
+      <input type="checkbox" data-f="bought" ${i.bought?"checked":""} aria-label="Bought">
+      <input class="name" data-f="name" value="${esc(i.name)}" placeholder="Item name">
+      <div class="total">${won(i.qty*i.price)}</div>
+      <div class="row2">
+        <select data-f="category" style="background:var(--${CATS.includes(i.category)?i.category:"Other"})">
+          ${CATS.map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}
+        </select>
+        <input class="qty" data-f="qty" inputmode="decimal" value="${i.qty}" aria-label="Quantity"><span class="x">×</span>
+        <input class="price" data-f="price" inputmode="numeric" value="${i.price?Math.round(i.price).toLocaleString("en-US"):""}" placeholder="₩ price" aria-label="Unit price">
+        <input class="who" data-f="who" value="${esc(i.who)}" placeholder="Who's buying">
+        <button class="del" data-del title="Delete">🗑</button>
+      </div>
+      <input class="notes" data-f="notes" value="${esc(i.notes)}" placeholder="Notes">
+    </div>`).join("") : `<div class="empty">Nothing here yet — tap “Add item”.</div>`;
+  if (focusKey){
+    const [id,f] = focusKey.split(":");
+    const el = list.querySelector(`.item[data-id="${CSS.escape(id)}"] [data-f="${f}"]`);
+    if (el){ el.focus(); try{ if(selStart!=null) el.setSelectionRange(selStart,selStart);}catch{} }
+  }
+}
+
+function parseNum(v){ return Math.max(0, Number(String(v).replace(/[^\d.]/g,"")) || 0); }
+
+$("list").addEventListener("input", e=>{
+  const f = e.target.dataset.f; if(!f) return;
+  const id = e.target.closest(".item").dataset.id;
+  const it = state.items.find(x=>x.id===id); if(!it) return;
+  if (f==="bought") it.bought = e.target.checked;
+  else if (f==="qty"||f==="price") it[f] = parseNum(e.target.value);
+  else it[f] = e.target.value;
+  if (f==="bought"||f==="category"){ save(it,0); render(); }
+  else { save(it); summary(); e.target.closest(".item").querySelector(".total").textContent = won(it.qty*it.price); }
+});
+$("list").addEventListener("change", e=>{
+  if (e.target.dataset.f==="price") e.target.value = it_price(e.target);
+});
+function it_price(el){ const n=parseNum(el.value); return n?Math.round(n).toLocaleString("en-US"):""; }
+$("list").addEventListener("click", async e=>{
+  if(!e.target.closest("[data-del]")) return;
+  const id = e.target.closest(".item").dataset.id;
+  const it = state.items.find(x=>x.id===id);
+  if(!confirm(`Delete "${it?.name||"this item"}"?`)) return;
+  state.items = state.items.filter(x=>x.id!==id); dirty.delete(id); render();
+  try { merge(await api("POST",{op:"delete",id})); render(); } catch(e){ setLive(false); }
+});
+$("addBtn").onclick = ()=>{
+  const it = { id: "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:"", category: filter||"Staples",
+    qty:1, price:0, who:"", bought:false, notes:"", order: Date.now() };
+  state.items.push(it); $("hideBought").checked=false; render(); save(it,0);
+  const el = document.querySelector(`.item[data-id="${it.id}"] .name`); el.focus(); el.scrollIntoView({block:"center",behavior:"smooth"});
+};
+$("cats").addEventListener("click", e=>{ const c=e.target.dataset.cat; if(!c) return; filter = filter===c?null:c; render(); });
+$("hideBought").onchange = render;
+let bt;
+$("budget").addEventListener("input", e=>{
+  state.budget = parseNum(e.target.value); summary();
+  clearTimeout(bt); bt = setTimeout(()=>api("POST",{op:"budget",budget:state.budget}).catch(()=>setLive(false)),600);
+});
+$("budget").addEventListener("blur", e=>{ e.target.value = Math.round(state.budget).toLocaleString("en-US"); });
+
+refresh();
+setInterval(()=>{ if(!document.hidden) refresh(); }, 3000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refresh(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "retreat-budget",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" }
+}
