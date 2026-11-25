@@ -8,21 +8,21 @@ const ITEMS = "retreat:items";
 const META = "retreat:meta";
 
 const SEED = [
-  // name, category, qty, unit price (KRW), notes, meal — sized for 11 people
-  ["Bacon, 500g pack", "Meat", 3, 9000, "", "Breakfast"],
-  ["Eggs, tray of 30", "Staples", 1, 9000, "", "Breakfast"],
-  ["Sausages, 1kg", "Meat", 2, 11000, "", "Breakfast"],
-  ["Hash browns, 20-pack", "Staples", 2, 8000, "", "Breakfast"],
-  ["Bread for toast, loaf", "Staples", 3, 3500, "", "Breakfast"],
-  ["Pork belly (samgyeopsal), kg", "Meat", 3, 28000, "Korean BBQ", "Dinner"],
-  ["Pork neck (moksal), kg", "Meat", 1, 26000, "", "Dinner"],
-  ["Lettuce & perilla leaves", "Produce", 3, 6000, "For ssam", "Dinner"],
-  ["Kimchi", "Staples", 1, 15000, "", "Dinner"],
-  ["Rice, 4kg bag", "Staples", 1, 16000, "", "Dinner"],
-  ["Ssamjang, salt, oil, sauces", "Staples", 1, 10000, "", "Dinner"],
-  ["Chips", "Snacks", 4, 3000, "", "Dinner"],
-  ["Water, 2L 6-pack", "Drinks", 2, 4000, "", "Dinner"],
-  ["Diet Coke, 1.5L", "Drinks", 4, 3000, "", "Dinner"],
+  // name, category, qty, unit price (KRW), notes, meal — quantity and price are filled in when shopping happens
+  ["Bacon, 500g pack", "Meat", 1, 0, "", "Breakfast"],
+  ["Eggs, tray of 30", "Staples", 1, 0, "", "Breakfast"],
+  ["Sausages, 1kg", "Meat", 1, 0, "", "Breakfast"],
+  ["Hash browns, 20-pack", "Staples", 1, 0, "", "Breakfast"],
+  ["Bread for toast, loaf", "Staples", 1, 0, "", "Breakfast"],
+  ["Pork belly (samgyeopsal), kg", "Meat", 1, 0, "Korean BBQ", "Dinner"],
+  ["Pork neck (moksal), kg", "Meat", 1, 0, "", "Dinner"],
+  ["Lettuce & perilla leaves", "Produce", 1, 0, "For ssam", "Dinner"],
+  ["Kimchi", "Staples", 1, 0, "", "Dinner"],
+  ["Rice, 4kg bag", "Staples", 1, 0, "", "Dinner"],
+  ["Ssamjang, salt, oil, sauces", "Staples", 1, 0, "", "Dinner"],
+  ["Chips", "Snacks", 1, 0, "", "Dinner"],
+  ["Water, 2L 6-pack", "Drinks", 1, 0, "", "Dinner"],
+  ["Diet Coke, 1.5L", "Drinks", 1, 0, "", "Dinner"],
 ];
 
 async function redis(cmd) {

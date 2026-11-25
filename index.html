@@ -58,6 +58,8 @@
   .bar span{height:100%}
   .alert{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:#f6ffed;border:1px solid #b7eb8f}
   .alert.over{background:#fff2f0;border-color:#ffccc7}
+  .alert.info{background:#e6f4ff;border-color:#91caff}
+  .alert svg{flex:none}
   .alert.err{background:#fff2f0;border-color:#ffccc7}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{min-height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;gap:8px}
@@ -88,7 +90,7 @@
   .c-name .nt,.c-name .sub{font-size:12px;color:var(--text2)}
   .c-name .sub{display:none}
   .c-cat{width:96px;flex:none}
-  .c-qty{width:140px;flex:none;color:var(--text2)}
+  .c-qty{width:150px;flex:none;color:var(--text2)}
   .c-total{width:100px;flex:none;text-align:right;font-weight:600}
   .tag{display:inline-block;padding:0 7px;font-size:12px;line-height:20px;border-radius:4px;border:1px solid}
   .row.bought .nm{text-decoration:line-through;color:var(--text2)}
@@ -251,7 +253,7 @@
           </div>
         </div>
         <div class="field" style="flex:1"><label for="fPrice">Unit price</label>
-          <div class="affix"><b aria-hidden="true">₩</b><input class="num" id="fPrice" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+          <div class="affix"><b aria-hidden="true">₩</b><input class="num" id="fPrice" inputmode="numeric" autocomplete="off" placeholder="Add when bought"></div>
         </div>
       </div>
       <div class="field"><label for="fNotes">Notes</label><input class="input" id="fNotes" maxlength="300" placeholder="Brand, store, anything helpful" autocomplete="off"></div>
@@ -334,29 +336,34 @@ function summary(){
   $("spent").textContent = won(spent);
   $("perPerson").textContent = state.people > 0 ? won(planned / state.people) : "–";
   const st = $("status");
+  const unpriced = state.items.filter(i=>!(i.price>0)).length;
   st.classList.toggle("over", over);
-  st.innerHTML = over
+  st.classList.toggle("info", !over && unpriced > 0);
+  st.innerHTML = !over && unpriced > 0
+    ? `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#1677ff"/><path d="M8 7.2v4M8 4.8v.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>${unpriced === state.items.length ? "No prices yet" : unpriced + (unpriced===1?" item has":" items have") + " no price yet"} — add the quantity and price as each item is bought.`
+    : over
     ? '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#ff4d4f"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>Over budget — trim an item or raise the budget to get back on track.'
     : '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#52c41a"/><path d="M5 8.2l2 2 4-4.2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>On track — everything planned fits the budget.';
-  const by = {}; state.items.forEach(i=>{ const c=catOf(i); by[c]=(by[c]||0)+total(i); });
+  const by = {}, cnt = {}; state.items.forEach(i=>{ const c=catOf(i); by[c]=(by[c]||0)+total(i); cnt[c]=(cnt[c]||0)+1; });
   const scale = Math.max(state.budget, planned) || 1;
-  const used = CATS.filter(c=>by[c]);
+  const used = CATS.filter(c=>cnt[c]);
   if (filter && !used.includes(filter)) filter = null;
-  $("bar").innerHTML = used.map(c=>`<span style="width:${by[c]/scale*100}%;background:${DOT[c]}"></span>`).join("");
+  $("bar").innerHTML = used.filter(c=>by[c]).map(c=>`<span style="width:${by[c]/scale*100}%;background:${DOT[c]}"></span>`).join("");
   $("cats").innerHTML = `<button class="chip" data-cat="" aria-pressed="${!filter}">All items</button>` + used.map(c=>
-    `<button class="chip" data-cat="${c}" aria-pressed="${filter===c}"><i aria-hidden="true" style="background:${DOT[c]}"></i>${c}<span class="muted num">${won(by[c])} · ${Math.round(by[c]/(state.budget||1)*100)}%</span></button>`).join("");
+    `<button class="chip" data-cat="${c}" aria-pressed="${filter===c}"><i aria-hidden="true" style="background:${DOT[c]}"></i>${c}<span class="muted num">${by[c] ? `${won(by[c])} · ${Math.round(by[c]/(state.budget||1)*100)}%` : cnt[c]}</span></button>`).join("");
 }
 
 function rowHtml(i){
   const c = catOf(i), t = TAG[c], name = i.name || "Untitled item";
-  const qty = `${i.qty} × ${won(i.price)}`;
+  const priced = i.price > 0;   // quantity and price are filled in when the item is actually bought
+  const qty = priced ? `${i.qty} × ${won(i.price)}` : "";
   return `<div class="row ${i.bought?"bought":""}" data-id="${esc(i.id)}">
     <label class="ck"><input type="checkbox" data-bought ${i.bought?"checked":""} aria-label="Bought: ${esc(name)}"></label>
     <button class="rowbtn" data-edit aria-label="Edit ${esc(name)}">
-      <span class="c-name"><span class="nm">${esc(name)}</span>${i.notes?`<span class="nt">${esc(i.notes)}</span>`:""}<span class="sub num">${qty}${i.notes?" · "+esc(i.notes):""}</span></span>
+      <span class="c-name"><span class="nm">${esc(name)}</span>${i.notes?`<span class="nt">${esc(i.notes)}</span>`:""}<span class="sub num">${[qty, esc(i.notes)].filter(Boolean).join(" · ") || "Price added when bought"}</span></span>
       <span class="c-cat"><span class="tag" style="color:${t[0]};background:${t[1]};border-color:${t[2]}">${c}</span></span>
-      <span class="c-qty num">${qty}</span>
-      <span class="c-total num">${won(total(i))}</span>
+      <span class="c-qty num">${qty || "Added when bought"}</span>
+      <span class="c-total num">${priced ? won(total(i)) : "–"}</span>
     </button>
   </div>`;
 }
@@ -377,7 +384,7 @@ function render(force){
   $("hideBought").setAttribute("aria-checked", hideBought);
   const groups = MEALS.map(m => ({ m, rows: items.filter(i => mealOf(i) === m) })).filter(g => g.rows.length);
   $("list").innerHTML = groups.length ? groups.map(g => `
-    <div class="group-head"><h3>${g.m}</h3><span class="count">${g.rows.length} ${g.rows.length===1?"item":"items"}</span><span class="sub num">${won(g.rows.reduce((s,i)=>s+total(i),0))}</span></div>
+    <div class="group-head"><h3>${g.m}</h3><span class="count">${g.rows.length} ${g.rows.length===1?"item":"items"}</span><span class="sub num">${g.rows.some(i=>i.price>0) ? won(g.rows.reduce((s,i)=>s+total(i),0)) : ""}</span></div>
     ${g.rows.map(rowHtml).join("")}`).join("")
     : `<div class="empty">${state.items.length ? "Nothing left here — everything in this view is bought." : "Nothing here yet — add your first item."}</div>`;
   if (focusId) $("list").querySelector(`.row[data-id="${CSS.escape(focusId)}"] ${focusSel}`)?.focus();
