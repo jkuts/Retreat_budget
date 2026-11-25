@@ -38,7 +38,7 @@ async function redis(cmd) {
 }
 
 const clean = (s, n = 120) => String(s ?? "").slice(0, n);
-const num = (v) => { const x = Number(v); return Number.isFinite(x) && x >= 0 ? Math.min(x, 1e9) : 0; };
+const num = (v, max = 1e9) => { const x = Number(v); return Number.isFinite(x) && x >= 0 ? Math.min(x, max) : 0; };
 
 function sanitize(it) {
   return {
@@ -50,7 +50,7 @@ function sanitize(it) {
     who: clean(it.who, 40),
     bought: !!it.bought,
     notes: clean(it.notes, 300),
-    order: num(it.order),
+    order: num(it.order, 1e15),
     updated: Date.now(),
   };
 }
