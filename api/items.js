@@ -8,22 +8,21 @@ const ITEMS = "retreat:items";
 const META = "retreat:meta";
 
 const SEED = [
-  ["Pork belly (samgyeopsal), kg", "Meat", 2, 28000, "BBQ night 1"],
-  ["Pork neck (moksal), kg", "Meat", 1, 26000, ""],
-  ["Lettuce & perilla leaves", "Produce", 2, 6000, "For ssam"],
-  ["Kimchi", "Staples", 1, 15000, ""],
-  ["Rice, 4kg bag", "Staples", 1, 16000, ""],
-  ["Ramyeon 5-pack", "Staples", 2, 4500, "Late-night / hangover breakfast"],
-  ["Eggs, 30", "Staples", 1, 9000, ""],
-  ["Bread & jam", "Staples", 1, 8000, "Breakfast"],
-  ["Fruit", "Produce", 1, 20000, ""],
-  ["Snacks & chips", "Snacks", 1, 25000, ""],
-  ["Soju", "Drinks", 10, 1800, ""],
-  ["Beer 6-pack", "Drinks", 3, 11000, ""],
-  ["Soft drinks & water", "Drinks", 1, 15000, ""],
-  ["Charcoal & grill supplies", "Supplies", 1, 20000, ""],
-  ["Plates, cups, foil, bags", "Supplies", 1, 12000, ""],
-  ["Ssamjang, salt, oil, sauces", "Staples", 1, 10000, ""],
+  // name, category, qty, unit price (KRW), notes, meal — sized for 11 people
+  ["Bacon, 500g pack", "Meat", 3, 9000, "", "Breakfast"],
+  ["Eggs, tray of 30", "Staples", 1, 9000, "", "Breakfast"],
+  ["Sausages, 1kg", "Meat", 2, 11000, "", "Breakfast"],
+  ["Hash browns, 20-pack", "Staples", 2, 8000, "", "Breakfast"],
+  ["Bread for toast, loaf", "Staples", 3, 3500, "", "Breakfast"],
+  ["Pork belly (samgyeopsal), kg", "Meat", 3, 28000, "Korean BBQ", "Dinner"],
+  ["Pork neck (moksal), kg", "Meat", 1, 26000, "", "Dinner"],
+  ["Lettuce & perilla leaves", "Produce", 3, 6000, "For ssam", "Dinner"],
+  ["Kimchi", "Staples", 1, 15000, "", "Dinner"],
+  ["Rice, 4kg bag", "Staples", 1, 16000, "", "Dinner"],
+  ["Ssamjang, salt, oil, sauces", "Staples", 1, 10000, "", "Dinner"],
+  ["Chips", "Snacks", 4, 3000, "", "Dinner"],
+  ["Water, 2L 6-pack", "Drinks", 2, 4000, "", "Dinner"],
+  ["Diet Coke, 1.5L", "Drinks", 4, 3000, "", "Dinner"],
 ];
 
 async function redis(cmd) {
@@ -45,6 +44,8 @@ function sanitize(it) {
     id: clean(it.id, 40),
     name: clean(it.name),
     category: clean(it.category, 30),
+    // "" = not set (items saved before meals existed); the page then guesses.
+    meal: it.meal === "Breakfast" || it.meal === "Dinner" ? it.meal : "",
     qty: num(it.qty),
     price: num(it.price),
     who: clean(it.who, 40),
@@ -60,13 +61,13 @@ async function readAll() {
   if (!meta || meta.length === 0) {
     // First run: seed the starter list.
     const cmd = ["HSET", ITEMS];
-    SEED.forEach(([name, category, qty, price, notes], i) => {
+    SEED.forEach(([name, category, qty, price, notes, meal], i) => {
       const id = "seed" + i;
-      cmd.push(id, JSON.stringify(sanitize({ id, name, category, qty, price, notes, order: i })));
+      cmd.push(id, JSON.stringify(sanitize({ id, name, category, qty, price, notes, meal, order: i })));
     });
     await redis(cmd);
-    await redis(["HSET", META, "budget", "330000", "seeded", "1"]);
-    meta = ["budget", "330000"];
+    await redis(["HSET", META, "budget", "330000", "people", "11", "seeded", "1"]);
+    meta = ["budget", "330000", "people", "11"];
   }
   const m = {};
   for (let i = 0; i < meta.length; i += 2) m[meta[i]] = meta[i + 1];
@@ -76,7 +77,7 @@ async function readAll() {
     try { items.push(JSON.parse(raw[i + 1])); } catch {}
   }
   items.sort((a, b) => a.order - b.order);
-  return { budget: Number(m.budget) || 330000, items };
+  return { budget: Number(m.budget) || 330000, people: Number(m.people) || 11, items };
 }
 
 export default async function handler(req, res) {
@@ -95,6 +96,8 @@ export default async function handler(req, res) {
         await redis(["HDEL", ITEMS, clean(body.id, 40)]);
       } else if (body.op === "budget") {
         await redis(["HSET", META, "budget", String(num(body.budget))]);
+      } else if (body.op === "people") {
+        await redis(["HSET", META, "people", String(Math.max(1, Math.round(num(body.people, 999))))]);
       } else {
         return res.status(400).json({ error: "Unknown op" });
       }

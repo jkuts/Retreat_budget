@@ -4,97 +4,289 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Retreat Food & Shopping Budget</title>
-<meta name="theme-color" content="#1f3a2e">
+<meta name="theme-color" content="#ffffff">
 <style>
   :root{
-    --bg:#f6f4ef; --card:#fff; --ink:#1d2421; --muted:#6b736f; --line:#e4e0d6;
-    --accent:#1f3a2e; --good:#2f7a4f; --bad:#c0392b; --warn:#b7791f;
-    --Meat:#f6d5d1; --Produce:#d6efd9; --Staples:#f8edc4; --Snacks:#fbe0c6; --Drinks:#d5e6f7; --Supplies:#e5e5e5; --Other:#ece3f5;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#141816; --card:#1d2320; --ink:#e9ece9; --muted:#9aa39e; --line:#2d3531; --accent:#9fd3b4;
-      --Meat:#4a2a27; --Produce:#24402b; --Staples:#47401f; --Snacks:#4a3420; --Drinks:#203547; --Supplies:#333; --Other:#3a2f47; }
+    --primary:#1677ff; --primary-hover:#4096ff; --primary-bg:#e6f4ff; --primary-text:#0958d9;
+    --text:rgba(0,0,0,.88); --text2:rgba(0,0,0,.65); --border:#d9d9d9; --split:#f0f0f0;
+    --layout:#f5f5f5; --card:#fff; --fill:#fafafa; --error:#cf1322;
+    --pad:clamp(16px,4vw,40px);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;padding-bottom:90px}
-  header{background:var(--accent);color:#fff;padding:18px 16px 70px}
-  @media (prefers-color-scheme: dark){ header{background:#1f3a2e} }
-  h1{margin:0;font-size:20px;letter-spacing:-.2px}
-  .sub{opacity:.8;font-size:13px;margin-top:2px}
-  .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;opacity:.85;margin-top:6px}
-  .dot{width:8px;height:8px;border-radius:50%;background:#7ee2a3}
-  .dot.off{background:#f39c8f}
-  main{max-width:760px;margin:-56px auto 0;padding:0 12px}
-  .summary{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  @media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
-  .stat .l{font-size:12px;color:var(--muted)}
-  .stat .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
-  .budget-input{font:inherit;font-size:19px;font-weight:700;width:100%;border:none;border-bottom:1px dashed var(--line);background:transparent;color:var(--ink);padding:0}
-  .bar{height:10px;border-radius:6px;background:var(--line);margin:14px 0 6px;overflow:hidden;display:flex}
+  [hidden]{display:none!important}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--layout);color:var(--text);
+    font:14px/1.5715 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .num{font-variant-numeric:tabular-nums}
+  .muted{color:var(--text2)}
+
+  /* Top bar */
+  .top{background:var(--card);border-bottom:1px solid var(--split)}
+  .top-in{max-width:1240px;margin:0 auto;min-height:80px;padding:20px var(--pad);display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+  .brand{display:flex;align-items:center;gap:12px;flex:1 1 280px;min-width:0}
+  .brand h1{margin:0;font-size:18px;font-weight:600}
+  .live{display:inline-flex;align-items:center;gap:8px;color:var(--text2);margin-left:4px}
+  .dot{width:6px;height:6px;border-radius:50%;background:#52c41a}
+  .dot.off{background:#ff4d4f}
+  .btn{height:44px;padding:0 20px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:16px;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 0 rgba(0,0,0,.02);text-decoration:none;white-space:nowrap}
+  .btn:hover{border-color:var(--primary-hover);color:var(--primary-hover)}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 0 rgba(5,145,255,.1)}
+  .btn.primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff}
+  .btn.danger{border-color:#ff4d4f;color:var(--error)}
+  .btn.danger:hover{border-color:#ff7875;color:#ff4d4f}
+
+  main{max-width:1240px;margin:0 auto;padding:clamp(20px,4vw,40px) var(--pad) 64px;display:flex;flex-direction:column;gap:clamp(16px,2.5vw,32px)}
+  .card{background:var(--card);border:1px solid var(--split);border-radius:8px}
+
+  /* Summary */
+  .summary{padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:24px}
+  .sum-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 48px}
+  .hero{flex:1 1 280px;display:flex;flex-direction:column;gap:4px}
+  .hero .v{font-weight:600;font-size:clamp(38px,6vw,46px);line-height:1.2;color:var(--primary)}
+  .hero.over .v{color:var(--error)}
+  .stats{display:flex;flex-wrap:wrap;gap:16px 48px}
+  .stat{display:flex;flex-direction:column;gap:4px}
+  .stat .v{font-size:24px;min-height:38px;display:inline-flex;align-items:center}
+  .stat input{font-size:24px;height:38px;padding:0;border:none;border-bottom:1px dashed var(--border);border-radius:0;background:none;width:6.2em}
+  .stat input.people{width:2.4em}
+  .stat input:focus{outline:none;border-bottom:1px solid var(--primary)}
+  .bar{height:8px;border-radius:100px;background:rgba(0,0,0,.06);overflow:hidden;display:flex;gap:2px}
   .bar span{height:100%}
-  .status{font-weight:600;font-size:14px}
-  .status.ok{color:var(--good)} .status.over{color:var(--bad)}
-  .cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-  .chip{font-size:12px;padding:4px 9px;border-radius:999px;color:var(--ink);cursor:pointer;border:2px solid transparent}
-  .chip.active{border-color:var(--ink)}
-  .toolbar{display:flex;gap:8px;align-items:center;margin:16px 2px 8px}
-  .toolbar h2{font-size:16px;margin:0;flex:1}
-  .toggle{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
-  .item{background:var(--card);border-radius:14px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--line);display:grid;grid-template-columns:28px 1fr auto;gap:4px 10px;align-items:start}
-  .item.bought{opacity:.6}
-  .item.bought .name{text-decoration:line-through}
-  .item input[type=checkbox]{width:22px;height:22px;margin:6px 0 0;accent-color:var(--good)}
-  .name{font:inherit;font-weight:600;border:none;background:transparent;color:var(--ink);width:100%;padding:4px 0}
-  .total{font-weight:700;font-variant-numeric:tabular-nums;padding-top:4px;white-space:nowrap}
-  .row2{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-  .row2 select,.row2 input{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:var(--bg);color:var(--ink)}
-  .qty{width:56px}.price{width:100px}.who{width:110px}
-  .notes{grid-column:2 / 4;font:inherit;font-size:13px;color:var(--muted);border:none;background:transparent;width:100%;padding:2px 0}
-  .del{border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;margin-left:auto}
-  .x{font-size:12px;color:var(--muted)}
-  .add{position:fixed;left:0;right:0;bottom:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%)}
-  .add button{display:block;max-width:760px;margin:0 auto;width:100%;font:inherit;font-weight:700;font-size:16px;padding:14px;border-radius:14px;border:none;background:var(--accent);color:#fff;cursor:pointer}
-  @media (prefers-color-scheme: dark){ .add button{color:#10231a} }
-  .err{background:#fde8e6;color:#8a2318;padding:10px 12px;border-radius:10px;margin:10px 0;font-size:13px;display:none}
-  .empty{text-align:center;color:var(--muted);padding:30px 0}
+  .alert{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:#f6ffed;border:1px solid #b7eb8f}
+  .alert.over{background:#fff2f0;border-color:#ffccc7}
+  .alert.err{background:#fff2f0;border-color:#ffccc7}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{min-height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;gap:8px}
+  .chip[aria-pressed=true]{border-color:var(--primary);background:var(--primary-bg);color:var(--primary-text)}
+  .chip i{width:8px;height:8px;border-radius:50%}
+
+  /* List */
+  .list{overflow:hidden}
+  .list-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:72px;padding:16px 24px}
+  .list-head h2{margin:0;font-size:16px;font-weight:600}
+  .list-head .count{flex:1 1 auto;color:var(--text2)}
+  .switch-wrap{display:inline-flex;align-items:center;gap:8px}
+  .switch{width:44px;height:22px;padding:2px;border:none;border-radius:100px;background:rgba(0,0,0,.45);display:inline-flex;justify-content:flex-start}
+  .switch[aria-checked=true]{background:var(--primary);justify-content:flex-end}
+  .switch span{width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,35,11,.2)}
+  .col-head{display:flex;align-items:center;gap:16px;padding:16px 24px;background:var(--fill);border-top:1px solid var(--split);font-weight:600}
+  .group-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:20px 24px 12px;border-top:1px solid var(--split)}
+  .group-head h3{margin:0;font-size:16px;font-weight:600}
+  .group-head .count{flex:1 1 auto;color:var(--text2)}
+  .group-head .sub{font-weight:600}
+  .row{display:flex;align-items:center;gap:16px;padding:8px 24px;border-top:1px solid var(--split)}
+  .row:hover{background:var(--fill)}
+  .ck{width:32px;height:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+  .ck input{width:16px;height:16px;margin:0;accent-color:var(--primary)}
+  .rowbtn{flex:1;min-width:0;min-height:44px;padding:8px 0;border:none;background:none;text-align:left;display:flex;align-items:center;gap:16px}
+  .c-sp{width:32px;flex:none}
+  .c-name{flex:1 1 180px;min-width:0;display:flex;flex-direction:column}
+  .c-name .nt,.c-name .sub{font-size:12px;color:var(--text2)}
+  .c-name .sub{display:none}
+  .c-cat{width:96px;flex:none}
+  .c-qty{width:140px;flex:none;color:var(--text2)}
+  .c-total{width:100px;flex:none;text-align:right;font-weight:600}
+  .tag{display:inline-block;padding:0 7px;font-size:12px;line-height:20px;border-radius:4px;border:1px solid}
+  .row.bought .nm{text-decoration:line-through;color:var(--text2)}
+  .row.bought .c-total{color:var(--text2)}
+  .empty{padding:48px 24px;text-align:center;color:var(--text2);border-top:1px solid var(--split)}
+
+  /* Bottom bar (phones) */
+  .bottom{display:none;position:fixed;left:0;right:0;bottom:0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--split)}
+  .bottom .btn{width:100%;height:48px}
+
+  /* Editor */
+  dialog{border:none;padding:0;border-radius:8px;width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);color:var(--text);box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  dialog form{display:flex;flex-direction:column;max-height:inherit}
+  .dlg-head{display:flex;align-items:center;min-height:68px;padding:0 12px 0 24px;border-bottom:1px solid var(--split)}
+  .dlg-head h2{flex:1;margin:0;font-size:16px;font-weight:600}
+  .icon-btn{width:44px;height:44px;border:none;background:none;color:var(--text2);display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
+  .dlg-body{padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+  .field{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .field>label,.field>span{font-size:14px}
+  .input{height:44px;padding:0 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:16px;width:100%}
+  .input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(5,145,255,.1)}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{position:relative}
+  .opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+  .opt span{height:44px;padding:0 12px;border-radius:8px;border:1px solid var(--border);display:inline-flex;align-items:center;gap:8px}
+  .opt span i{width:8px;height:8px;border-radius:50%}
+  .opt input:checked+span{border-color:var(--primary);background:var(--primary-bg);color:var(--primary-text)}
+  .opt input:focus-visible+span{outline:2px solid var(--primary);outline-offset:2px}
+  .seg{display:flex;gap:2px;padding:2px;border-radius:8px;background:var(--layout)}
+  .seg .opt{flex:1}
+  .seg .opt span{width:100%;height:40px;justify-content:center;border:none;border-radius:6px;color:var(--text2)}
+  .seg .opt input:checked+span{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.03),0 1px 6px -1px rgba(0,0,0,.02),0 2px 4px rgba(0,0,0,.02)}
+  .pair{display:flex;gap:12px}
+  .stepper{height:44px;display:flex;align-items:center;border-radius:8px;border:1px solid var(--border);overflow:hidden}
+  .stepper button{width:44px;height:42px;border:none;background:var(--fill);display:inline-flex;align-items:center;justify-content:center}
+  .stepper button:first-child{border-right:1px solid var(--border)}
+  .stepper button:last-child{border-left:1px solid var(--border)}
+  .stepper input{width:52px;height:42px;padding:0;border:none;background:none;text-align:center;font-size:16px}
+  .stepper input:focus{outline:none}
+  .affix{height:44px;display:flex;align-items:center;border-radius:8px;border:1px solid var(--border);overflow:hidden}
+  .affix:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(5,145,255,.1)}
+  .affix b{align-self:stretch;padding:0 11px;display:inline-flex;align-items:center;background:var(--fill);border-right:1px solid var(--border);font-size:16px;font-weight:400}
+  .affix input{flex:1;min-width:0;height:42px;padding:0 11px;border:none;background:none;font-size:16px}
+  .affix input:focus{outline:none}
+  .dlg-foot{padding:20px 24px 24px;border-top:1px solid var(--split);display:flex;flex-direction:column;gap:16px}
+  .dlg-total{display:flex;align-items:baseline;justify-content:space-between}
+  .dlg-total .v{font-size:24px}
+  .dlg-actions{display:flex;gap:8px}
+  .dlg-actions .btn{height:48px}
+  .dlg-actions .btn.primary{flex:1}
+
+  @media (max-width:720px){
+    body{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+    .top-in{min-height:72px;padding:14px 20px;gap:12px}
+    .brand{flex:1 1 auto}
+    .live .txt{display:none}
+    .top .add{display:none}
+    .top .copy{width:44px;padding:0;border:none;box-shadow:none}
+    .top .copy .lbl{display:none}
+    .bottom{display:block}
+    .stats{gap:16px 28px}
+    .stat .v,.stat input{font-size:18px;min-height:32px;height:32px}
+    .col-head,.c-cat,.c-qty,.c-name .nt{display:none}
+    .c-name .sub{display:block}
+    .list-head{padding:16px}
+    .group-head{padding:16px 16px 12px}
+    .row{padding:4px 16px 4px 4px;gap:4px}
+    .ck{width:44px}
+    .rowbtn{gap:12px}
+    .c-total{width:auto}
+    dialog{margin:auto 0 0;width:100vw;max-width:100vw;max-height:calc(100dvh - 48px);border-radius:8px 8px 0 0}
+    .dlg-head{padding:0 8px 0 20px}
+    .dlg-body{padding:20px}
+    .dlg-foot{padding:20px 20px calc(24px + env(safe-area-inset-bottom))}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>🛒 Retreat Food & Shopping Budget</h1>
-  <div class="sub">One shared list — everyone with this link can edit.</div>
-  <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">Live</span></div>
-</header>
-<main>
-  <section class="summary">
-    <div class="stats">
-      <div class="stat"><div class="l">Budget (₩)</div><input class="budget-input" id="budget" inputmode="numeric"></div>
-      <div class="stat"><div class="l">Planned</div><div class="v" id="planned">–</div></div>
-      <div class="stat"><div class="l">Bought so far</div><div class="v" id="spent">–</div></div>
-      <div class="stat"><div class="l">Left to plan</div><div class="v" id="left">–</div></div>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg aria-hidden="true" width="28" height="28" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="6" fill="#1677ff"/><path d="M7.5 9h11l-1.2 6.5h-8.6L7.5 9zM10 19h.01M16 19h.01" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Retreat budget</h1>
+      <span class="live" role="status"><span class="dot" id="dot"></span><span id="liveTxt">Live<span class="txt"> · syncing every few seconds</span></span></span>
     </div>
-    <div class="bar" id="bar"></div>
-    <div class="status" id="status"></div>
-    <div class="cats" id="cats"></div>
-  </section>
-  <div class="err" id="err"></div>
-  <div class="toolbar">
-    <h2 id="listTitle">Shopping list</h2>
-    <label class="toggle"><input type="checkbox" id="hideBought"> Hide bought</label>
+    <button class="btn copy" id="copyBtn" aria-label="Copy share link">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5a3 3 0 004.2 0l2.3-2.3a3 3 0 00-4.2-4.2l-.8.8M9.5 6.5a3 3 0 00-4.2 0L3 8.8A3 3 0 007.2 13l.8-.8"/></svg>
+      <span class="lbl" id="copyLbl">Copy link</span>
+    </button>
+    <button class="btn primary add" data-add>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+      Add item
+    </button>
   </div>
-  <div id="list"></div>
+</header>
+
+<main>
+  <div class="alert err" id="err" role="alert" hidden></div>
+
+  <section class="card summary" aria-label="Budget summary">
+    <div class="sum-top">
+      <div class="hero" id="hero">
+        <span class="muted" id="heroLbl">Left to plan</span>
+        <span class="v num" id="left">–</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><label class="muted" for="budget">Budget (₩)</label><input class="num" id="budget" inputmode="numeric" autocomplete="off"></div>
+        <div class="stat"><span class="muted">Planned</span><span class="v num" id="planned">–</span></div>
+        <div class="stat"><span class="muted">Bought so far</span><span class="v num" id="spent">–</span></div>
+        <div class="stat"><span class="muted">Per person</span><span class="v num" id="perPerson">–</span></div>
+        <div class="stat"><label class="muted" for="people">People</label><input class="num people" id="people" inputmode="numeric" autocomplete="off"></div>
+      </div>
+    </div>
+    <div class="bar" id="bar" role="img" aria-label="Planned spend by category against the budget"></div>
+    <div class="alert" id="status" role="status"></div>
+    <div class="chips" id="cats" role="group" aria-label="Filter by category"></div>
+  </section>
+
+  <section class="card list" aria-label="Shopping list">
+    <div class="list-head">
+      <h2 id="listTitle">Shopping list</h2>
+      <span class="count" id="count"></span>
+      <span class="switch-wrap"><span id="hideLbl">Hide bought</span>
+        <button class="switch" id="hideBought" role="switch" aria-checked="false" aria-labelledby="hideLbl"><span aria-hidden="true"></span></button>
+      </span>
+    </div>
+    <div class="col-head" aria-hidden="true">
+      <span class="c-sp"></span><span class="c-name">Item</span><span class="c-cat">Category</span><span class="c-qty">Qty × price</span><span class="c-total">Total</span>
+    </div>
+    <div id="list"></div>
+  </section>
 </main>
-<div class="add"><button id="addBtn">+ Add item</button></div>
+
+<div class="bottom">
+  <button class="btn primary" data-add>
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+    Add item
+  </button>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form id="form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h2 id="dlgTitle">Edit item</h2>
+      <button type="button" class="icon-btn" id="dlgClose" aria-label="Close">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <div class="field"><label for="fName">Item</label><input class="input" id="fName" maxlength="120" placeholder="What needs buying?" autocomplete="off"></div>
+      <div class="field"><span id="lCat">Category</span><div class="opts" id="fCat" role="radiogroup" aria-labelledby="lCat"></div></div>
+      <div class="field"><span id="lMeal">Meal</span><div class="seg" id="fMeal" role="radiogroup" aria-labelledby="lMeal"></div></div>
+      <div class="pair">
+        <div class="field" style="flex:none"><label for="fQty">Quantity</label>
+          <div class="stepper">
+            <button type="button" id="qtyDown" aria-label="Decrease quantity"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 8h10"/></svg></button>
+            <input class="num" id="fQty" inputmode="decimal" autocomplete="off">
+            <button type="button" id="qtyUp" aria-label="Increase quantity"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></button>
+          </div>
+        </div>
+        <div class="field" style="flex:1"><label for="fPrice">Unit price</label>
+          <div class="affix"><b aria-hidden="true">₩</b><input class="num" id="fPrice" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        </div>
+      </div>
+      <div class="field"><label for="fNotes">Notes</label><input class="input" id="fNotes" maxlength="300" placeholder="Brand, store, anything helpful" autocomplete="off"></div>
+    </div>
+    <div class="dlg-foot">
+      <div class="dlg-total"><span class="muted num" id="fCalc"></span><span class="v num" id="fTotal"></span></div>
+      <div class="dlg-actions">
+        <button type="button" class="btn danger" id="fDelete">Delete</button>
+        <button type="submit" class="btn primary" id="fSave">Save item</button>
+      </div>
+    </div>
+  </form>
+</dialog>
 
 <script>
 const CATS = ["Meat","Produce","Staples","Snacks","Drinks","Supplies","Other"];
+const MEALS = ["Breakfast","Dinner"];
+const DOT = {Meat:"#fa541c",Produce:"#52c41a",Staples:"#faad14",Snacks:"#fa8c16",Drinks:"#1677ff",Supplies:"#8c8c8c",Other:"#722ed1"};
+const TAG = { // text, background, border
+  Meat:["#ad2102","#fff2e8","#ffbb96"], Produce:["#237804","#f6ffed","#b7eb8f"], Staples:["#874d00","#fffbe6","#ffe58f"],
+  Snacks:["#873800","#fff7e6","#ffd591"], Drinks:["#0958d9","#e6f4ff","#91caff"], Supplies:["rgba(0,0,0,.88)","#fafafa","#d9d9d9"],
+  Other:["#531dab","#f9f0ff","#d3adf7"] };
 const won = n => "₩" + Math.round(n||0).toLocaleString("en-US");
-let state = { budget: 330000, items: [] };
-let filter = null;
-const pending = new Map();   // id -> timer (local edits not yet saved)
-const dirty = new Set();     // ids with unsaved local changes
 const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const parseNum = v => Math.max(0, Number(String(v).replace(/[^\d.]/g,"")) || 0);
+const catOf = i => CATS.includes(i.category) ? i.category : "Other";
+// Items saved before meals existed have no `meal`; guess from the text, else Dinner.
+const mealOf = i => MEALS.includes(i.meal) ? i.meal : (/breakfast/i.test((i.name||"")+" "+(i.notes||"")) ? "Breakfast" : "Dinner");
+const total = i => i.qty * i.price;
+
+let state = { budget: 330000, people: 11, items: [] };
+let filter = null, hideBought = false, lastSig = "";
+const dirty = new Set();     // ids with local changes not yet confirmed by the server
+const metaBusy = { budget: 0, people: 0 };   // unsaved local edits to budget / people
 
 async function api(method, body){
   const r = await fetch("/api/items", { method, headers:{"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined });
@@ -104,8 +296,8 @@ async function api(method, body){
 }
 function setLive(ok, msg){
   $("dot").classList.toggle("off", !ok);
-  $("liveTxt").textContent = ok ? "Live · syncing every few seconds" : "Offline — retrying…";
-  $("err").style.display = msg ? "block" : "none";
+  $("liveTxt").innerHTML = ok ? 'Live<span class="txt"> · syncing every few seconds</span>' : "Offline<span class=\"txt\"> — retrying…</span>";
+  $("err").hidden = !msg;
   $("err").textContent = msg || "";
 }
 
@@ -114,116 +306,178 @@ function merge(remote){
   const local = new Map(state.items.map(i=>[i.id,i]));
   const items = remote.items.map(r => dirty.has(r.id) && local.get(r.id) ? local.get(r.id) : r);
   for (const id of dirty) if (!remote.items.find(r=>r.id===id) && local.get(id)) items.push(local.get(id));
-  state = { budget: document.activeElement===$("budget") ? state.budget : remote.budget, items };
+  state = {
+    budget: metaBusy.budget || document.activeElement===$("budget") ? state.budget : remote.budget,
+    people: metaBusy.people || document.activeElement===$("people") ? state.people : (remote.people || state.people || 11),
+    items };
 }
-
 async function refresh(){
   try { merge(await api("GET")); setLive(true); render(); }
   catch(e){ setLive(false, e.message.includes("Database") ? e.message : ""); }
 }
-
-function save(item, delay=500){
+async function save(item){
   dirty.add(item.id);
-  clearTimeout(pending.get(item.id));
-  pending.set(item.id, setTimeout(async ()=>{
-    try { await api("POST",{op:"upsert",item}); dirty.delete(item.id); setLive(true); }
-    catch(e){ setLive(false); }
-  }, delay));
+  try { await api("POST",{op:"upsert",item}); dirty.delete(item.id); setLive(true); }
+  catch(e){ setLive(false); }
 }
 
 function summary(){
-  const planned = state.items.reduce((s,i)=>s+i.qty*i.price,0);
-  const spent = state.items.filter(i=>i.bought).reduce((s,i)=>s+i.qty*i.price,0);
-  const left = state.budget - planned;
+  const planned = state.items.reduce((s,i)=>s+total(i),0);
+  const spent = state.items.filter(i=>i.bought).reduce((s,i)=>s+total(i),0);
+  const left = state.budget - planned, over = left < 0;
   if (document.activeElement !== $("budget")) $("budget").value = Math.round(state.budget).toLocaleString("en-US");
+  if (document.activeElement !== $("people")) $("people").value = state.people;
+  $("hero").classList.toggle("over", over);
+  $("heroLbl").textContent = over ? "Over budget by" : "Left to plan";
+  $("left").textContent = won(Math.abs(left));
   $("planned").textContent = won(planned);
   $("spent").textContent = won(spent);
-  $("left").textContent = (left<0?"−":"") + won(Math.abs(left));
-  $("left").style.color = left<0 ? "var(--bad)" : "var(--good)";
+  $("perPerson").textContent = state.people > 0 ? won(planned / state.people) : "–";
   const st = $("status");
-  st.className = "status " + (left<0?"over":"ok");
-  st.textContent = left<0 ? `⚠️ Over budget by ${won(-left)} — trim something!` : `✅ On track — ${won(left)} still free to plan`;
-  // bar by category
-  const by = {}; state.items.forEach(i=>{ const c=CATS.includes(i.category)?i.category:"Other"; by[c]=(by[c]||0)+i.qty*i.price; });
+  st.classList.toggle("over", over);
+  st.innerHTML = over
+    ? '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#ff4d4f"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>Over budget — trim an item or raise the budget to get back on track.'
+    : '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#52c41a"/><path d="M5 8.2l2 2 4-4.2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>On track — everything planned fits the budget.';
+  const by = {}; state.items.forEach(i=>{ const c=catOf(i); by[c]=(by[c]||0)+total(i); });
   const scale = Math.max(state.budget, planned) || 1;
-  $("bar").innerHTML = CATS.filter(c=>by[c]).map(c=>`<span title="${c}" style="width:${by[c]/scale*100}%;background:var(--${c})"></span>`).join("");
-  $("cats").innerHTML = CATS.filter(c=>by[c]).map(c=>
-    `<span class="chip ${filter===c?"active":""}" data-cat="${c}" style="background:var(--${c})">${c} · ${won(by[c])} · ${Math.round(by[c]/(state.budget||1)*100)}%</span>`).join("");
+  const used = CATS.filter(c=>by[c]);
+  if (filter && !used.includes(filter)) filter = null;
+  $("bar").innerHTML = used.map(c=>`<span style="width:${by[c]/scale*100}%;background:${DOT[c]}"></span>`).join("");
+  $("cats").innerHTML = `<button class="chip" data-cat="" aria-pressed="${!filter}">All items</button>` + used.map(c=>
+    `<button class="chip" data-cat="${c}" aria-pressed="${filter===c}"><i aria-hidden="true" style="background:${DOT[c]}"></i>${c}<span class="muted num">${won(by[c])} · ${Math.round(by[c]/(state.budget||1)*100)}%</span></button>`).join("");
 }
 
-function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function rowHtml(i){
+  const c = catOf(i), t = TAG[c], name = i.name || "Untitled item";
+  const qty = `${i.qty} × ${won(i.price)}`;
+  return `<div class="row ${i.bought?"bought":""}" data-id="${esc(i.id)}">
+    <label class="ck"><input type="checkbox" data-bought ${i.bought?"checked":""} aria-label="Bought: ${esc(name)}"></label>
+    <button class="rowbtn" data-edit aria-label="Edit ${esc(name)}">
+      <span class="c-name"><span class="nm">${esc(name)}</span>${i.notes?`<span class="nt">${esc(i.notes)}</span>`:""}<span class="sub num">${qty}${i.notes?" · "+esc(i.notes):""}</span></span>
+      <span class="c-cat"><span class="tag" style="color:${t[0]};background:${t[1]};border-color:${t[2]}">${c}</span></span>
+      <span class="c-qty num">${qty}</span>
+      <span class="c-total num">${won(total(i))}</span>
+    </button>
+  </div>`;
+}
 
-function render(){
+function render(force){
+  const sig = JSON.stringify([state, filter, hideBought]);
+  if (!force && sig === lastSig) return;
+  lastSig = sig;
   summary();
-  const list = $("list");
-  const focused = document.activeElement;
-  const focusKey = focused && focused.dataset && focused.dataset.f ? focused.closest(".item")?.dataset.id + ":" + focused.dataset.f : null;
-  const selStart = focused && "selectionStart" in focused ? focused.selectionStart : null;
+  const focusId = document.activeElement?.closest?.(".row")?.dataset.id;
+  const focusSel = document.activeElement?.matches?.("[data-bought]") ? "[data-bought]" : "[data-edit]";
   let items = state.items;
-  if (filter) items = items.filter(i => (CATS.includes(i.category)?i.category:"Other") === filter);
-  if ($("hideBought").checked) items = items.filter(i=>!i.bought);
-  $("listTitle").textContent = filter ? `Shopping list · ${filter}` : "Shopping list";
-  list.innerHTML = items.length ? items.map(i=>`
-    <div class="item ${i.bought?"bought":""}" data-id="${esc(i.id)}">
-      <input type="checkbox" data-f="bought" ${i.bought?"checked":""} aria-label="Bought">
-      <input class="name" data-f="name" value="${esc(i.name)}" placeholder="Item name">
-      <div class="total">${won(i.qty*i.price)}</div>
-      <div class="row2">
-        <select data-f="category" style="background:var(--${CATS.includes(i.category)?i.category:"Other"})">
-          ${CATS.map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}
-        </select>
-        <input class="qty" data-f="qty" inputmode="decimal" value="${i.qty}" aria-label="Quantity"><span class="x">×</span>
-        <input class="price" data-f="price" inputmode="numeric" value="${i.price?Math.round(i.price).toLocaleString("en-US"):""}" placeholder="₩ price" aria-label="Unit price">
-        <input class="who" data-f="who" value="${esc(i.who)}" placeholder="Who's buying">
-        <button class="del" data-del title="Delete">🗑</button>
-      </div>
-      <input class="notes" data-f="notes" value="${esc(i.notes)}" placeholder="Notes">
-    </div>`).join("") : `<div class="empty">Nothing here yet — tap “Add item”.</div>`;
-  if (focusKey){
-    const [id,f] = focusKey.split(":");
-    const el = list.querySelector(`.item[data-id="${CSS.escape(id)}"] [data-f="${f}"]`);
-    if (el){ el.focus(); try{ if(selStart!=null) el.setSelectionRange(selStart,selStart);}catch{} }
-  }
+  if (filter) items = items.filter(i => catOf(i) === filter);
+  if (hideBought) items = items.filter(i => !i.bought);
+  const boughtN = state.items.filter(i=>i.bought).length;
+  $("listTitle").textContent = filter || "Shopping list";
+  $("count").textContent = `${items.length} ${items.length===1?"item":"items"} · ${boughtN} of ${state.items.length} bought`;
+  $("hideBought").setAttribute("aria-checked", hideBought);
+  const groups = MEALS.map(m => ({ m, rows: items.filter(i => mealOf(i) === m) })).filter(g => g.rows.length);
+  $("list").innerHTML = groups.length ? groups.map(g => `
+    <div class="group-head"><h3>${g.m}</h3><span class="count">${g.rows.length} ${g.rows.length===1?"item":"items"}</span><span class="sub num">${won(g.rows.reduce((s,i)=>s+total(i),0))}</span></div>
+    ${g.rows.map(rowHtml).join("")}`).join("")
+    : `<div class="empty">${state.items.length ? "Nothing left here — everything in this view is bought." : "Nothing here yet — add your first item."}</div>`;
+  if (focusId) $("list").querySelector(`.row[data-id="${CSS.escape(focusId)}"] ${focusSel}`)?.focus();
 }
 
-function parseNum(v){ return Math.max(0, Number(String(v).replace(/[^\d.]/g,"")) || 0); }
-
-$("list").addEventListener("input", e=>{
-  const f = e.target.dataset.f; if(!f) return;
-  const id = e.target.closest(".item").dataset.id;
-  const it = state.items.find(x=>x.id===id); if(!it) return;
-  if (f==="bought") it.bought = e.target.checked;
-  else if (f==="qty"||f==="price") it[f] = parseNum(e.target.value);
-  else it[f] = e.target.value;
-  if (f==="bought"||f==="category"){ save(it,0); render(); }
-  else { save(it); summary(); e.target.closest(".item").querySelector(".total").textContent = won(it.qty*it.price); }
-});
+/* ---------- List interactions ---------- */
 $("list").addEventListener("change", e=>{
-  if (e.target.dataset.f==="price") e.target.value = it_price(e.target);
+  if (!e.target.matches("[data-bought]")) return;
+  const it = state.items.find(x=>x.id===e.target.closest(".row").dataset.id); if(!it) return;
+  it.bought = e.target.checked; render(); save(it);
 });
-function it_price(el){ const n=parseNum(el.value); return n?Math.round(n).toLocaleString("en-US"):""; }
-$("list").addEventListener("click", async e=>{
-  if(!e.target.closest("[data-del]")) return;
-  const id = e.target.closest(".item").dataset.id;
-  const it = state.items.find(x=>x.id===id);
-  if(!confirm(`Delete "${it?.name||"this item"}"?`)) return;
-  state.items = state.items.filter(x=>x.id!==id); dirty.delete(id); render();
-  try { merge(await api("POST",{op:"delete",id})); render(); } catch(e){ setLive(false); }
+$("list").addEventListener("click", e=>{
+  const b = e.target.closest("[data-edit]"); if(!b) return;
+  const it = state.items.find(x=>x.id===b.closest(".row").dataset.id);
+  if (it) openEditor(it, false);
 });
-$("addBtn").onclick = ()=>{
-  const it = { id: "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:"", category: filter||"Staples",
-    qty:1, price:0, who:"", bought:false, notes:"", order: Date.now() };
-  state.items.push(it); $("hideBought").checked=false; render(); save(it,0);
-  const el = document.querySelector(`.item[data-id="${it.id}"] .name`); el.focus(); el.scrollIntoView({block:"center",behavior:"smooth"});
+$("cats").addEventListener("click", e=>{
+  const b = e.target.closest("[data-cat]"); if(!b) return;
+  filter = b.dataset.cat || null; render();
+  $("cats").querySelector(`[data-cat="${filter||""}"]`)?.focus();
+});
+$("hideBought").onclick = ()=>{ hideBought = !hideBought; render(); };
+document.querySelectorAll("[data-add]").forEach(b => b.onclick = ()=>{
+  openEditor({ id: "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:"", category: filter||"Staples", meal:"Dinner",
+    qty:1, price:0, who:"", bought:false, notes:"", order: Date.now() }, true);
+});
+$("copyBtn").onclick = async ()=>{
+  try { await navigator.clipboard.writeText(location.href); $("copyLbl").textContent = "Link copied"; }
+  catch { $("copyLbl").textContent = "Copy failed"; }
+  $("copyBtn").setAttribute("aria-label", $("copyLbl").textContent);
+  setTimeout(()=>{ $("copyLbl").textContent = "Copy link"; $("copyBtn").setAttribute("aria-label","Copy share link"); }, 2000);
 };
-$("cats").addEventListener("click", e=>{ const c=e.target.dataset.cat; if(!c) return; filter = filter===c?null:c; render(); });
-$("hideBought").onchange = render;
-let bt;
+
+/* ---------- Budget and people ---------- */
+let bt, pt;
+function saveMeta(key, value){   // keep the local value until the server has it
+  const n = ++metaBusy[key];
+  return api("POST", { op: key, [key]: value }).catch(()=>setLive(false)).finally(()=>{ if (metaBusy[key] === n) metaBusy[key] = 0; });
+}
 $("budget").addEventListener("input", e=>{
-  state.budget = parseNum(e.target.value); summary();
-  clearTimeout(bt); bt = setTimeout(()=>api("POST",{op:"budget",budget:state.budget}).catch(()=>setLive(false)),600);
+  state.budget = parseNum(e.target.value); render();
+  const v = state.budget; metaBusy.budget++;
+  clearTimeout(bt); bt = setTimeout(()=>saveMeta("budget", v),600);
 });
 $("budget").addEventListener("blur", e=>{ e.target.value = Math.round(state.budget).toLocaleString("en-US"); });
+$("people").addEventListener("input", e=>{
+  const n = Math.min(999, Math.round(parseNum(e.target.value))); if (!n) return;
+  state.people = n; render();
+  metaBusy.people++;
+  clearTimeout(pt); pt = setTimeout(()=>saveMeta("people", n),600);
+});
+$("people").addEventListener("blur", e=>{ e.target.value = state.people; });
+
+/* ---------- Editor ---------- */
+let draft = null, draftIsNew = false;
+$("fCat").innerHTML = CATS.map(c=>`<label class="opt"><input type="radio" name="cat" value="${c}"><span><i aria-hidden="true" style="background:${DOT[c]}"></i>${c}</span></label>`).join("");
+$("fMeal").innerHTML = MEALS.map(m=>`<label class="opt"><input type="radio" name="meal" value="${m}"><span>${m}</span></label>`).join("");
+function calc(){
+  const q = parseNum($("fQty").value), p = parseNum($("fPrice").value);
+  $("fCalc").textContent = `${q} × ${won(p)}`;
+  $("fTotal").textContent = won(q*p);
+}
+function openEditor(item, isNew){
+  draft = { ...item }; draftIsNew = isNew;
+  $("dlgTitle").textContent = isNew ? "Add item" : "Edit item";
+  $("fSave").textContent = isNew ? "Add item" : "Save item";
+  $("fDelete").hidden = isNew;
+  $("fName").value = draft.name || "";
+  $("form").elements.cat.value = catOf(draft);
+  $("form").elements.meal.value = mealOf(draft);
+  $("fQty").value = draft.qty;
+  $("fPrice").value = draft.price ? Math.round(draft.price).toLocaleString("en-US") : "";
+  $("fNotes").value = draft.notes || "";
+  calc();
+  $("dlg").showModal();
+  if (isNew) $("fName").focus();
+}
+["fQty","fPrice"].forEach(id => $(id).addEventListener("input", calc));
+$("fPrice").addEventListener("blur", e=>{ const n = parseNum(e.target.value); e.target.value = n ? Math.round(n).toLocaleString("en-US") : ""; });
+$("qtyDown").onclick = ()=>{ $("fQty").value = Math.max(0, parseNum($("fQty").value) - 1); calc(); };
+$("qtyUp").onclick = ()=>{ $("fQty").value = parseNum($("fQty").value) + 1; calc(); };
+$("dlgClose").onclick = ()=> $("dlg").close();
+$("dlg").addEventListener("click", e=>{ if (e.target === $("dlg")) $("dlg").close(); });   // backdrop
+$("form").addEventListener("submit", e=>{
+  e.preventDefault();
+  const f = $("form").elements;
+  const it = { ...draft, name: $("fName").value.trim(), category: f.cat.value || "Other", meal: f.meal.value || "Dinner",
+    qty: parseNum($("fQty").value), price: parseNum($("fPrice").value), notes: $("fNotes").value.trim() };
+  if (!it.name){ $("fName").focus(); return; }
+  const idx = state.items.findIndex(x=>x.id===it.id);
+  if (idx >= 0) state.items[idx] = it; else { state.items.push(it); hideBought = false; }
+  $("dlg").close(); render(); save(it);
+});
+$("fDelete").onclick = async ()=>{
+  if (!draft || !confirm(`Delete "${draft.name||"this item"}"?`)) return;
+  const id = draft.id;
+  state.items = state.items.filter(x=>x.id!==id); dirty.delete(id);
+  $("dlg").close(); render();
+  try { merge(await api("POST",{op:"delete",id})); render(); } catch(e){ setLive(false); }
+};
 
 refresh();
 setInterval(()=>{ if(!document.hidden) refresh(); }, 3000);
